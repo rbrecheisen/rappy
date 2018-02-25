@@ -3,3 +3,5 @@ pandas
 sklearn
 flask
 flask-restful
+werkzeug
+requests
