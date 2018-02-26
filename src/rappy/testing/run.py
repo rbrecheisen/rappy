@@ -7,8 +7,6 @@ DCM_FILE = '/Users/ralph/Data/dcm_file.txt'
 def run_tests():
 
     url = 'http://0.0.0.0:8000/tag2dcm'
-    response = requests.get(url)
-    print(response.status_code)
     files = [
         ('files', ('tag_file', open(TAG_FILE, 'rb'), 'application/octet-stream')),
         ('files', ('dcm_file', open(DCM_FILE, 'rb'), 'application/octet-stream'))]
