@@ -26,6 +26,7 @@ api.add_resource(IndexResource, IndexResource.URI)
 api.add_resource(Tag2DcmResource, Tag2DcmResource.URI)
 api.add_resource(ExtractMasksResource, ExtractMasksResource.URI)
 # api.add_resource(ExtractPyRadiomicsFeaturesResource, ExtractPyRadiomicsFeaturesResource.URI)
+
 app.register_blueprint(blueprint)
 
 
