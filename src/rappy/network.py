@@ -6,6 +6,7 @@ class Node(object):
         self.outputs = {}
         self.outputs_desc = {}
         self.params = {}
+        self.params_defaults = {}
         self.params_desc = {}
 
     def get_info(self):
@@ -24,7 +25,7 @@ class Node(object):
         if len(self.params.keys()) == 0:
             info += '- None\n'
         for k in self.params.keys():
-            info += '- {}: {}\n'.format(k, self.params_desc[k])
+            info += '- {}: {} (default: {})\n'.format(k, self.params_desc[k], self.params_defaults[k])
         info += '\n'
         return info
 
@@ -69,10 +70,14 @@ class Node(object):
 
     def add_param(self, name, default=None, desc=None):
         self.params[name] = default
+        self.params_defaults[name] = default
         self.params_desc[name] = desc
 
     def get_param(self, name):
         return self.params[name]
+
+    def get_param_default(self, name):
+        return self.params_defaults[name]
 
     def get_param_desc(self, name):
         return self.params_desc[name]
