@@ -7,18 +7,16 @@ from rappy.network import Node
 
 
 class Tag2Dcm(Node):
-
+    """
+    Receives a TomoVision TAG segmentation file and a corresponding DICOM file and
+    converts the TAG file to DICOM format.
+    """
     def __init__(self):
         super(Tag2Dcm, self).__init__()
-        self.add_input(
-            name='tag_file',
-            desc='TAG file to be converted and containing the mask annotations')
-        self.add_input(
-            name='dcm_file',
-            desc='DICOM file containing original image')
-        self.add_output(
-            name='tag_dcm_file',
-            desc='Converted TAG file in DICOM format')
+        self.add_input('tag_file')
+        self.add_input('dcm_file')
+        self.add_param('target_dir_path')
+        self.add_output('output_file_path')
 
     @staticmethod
     def _read_tag_file_pixels(f):
@@ -40,11 +38,10 @@ class Tag2Dcm(Node):
         values = values.astype(np.uint16)
         return values
 
-    @staticmethod
-    def _build_file_path(tag_file, dcm_file, postfix):
-        dcm_dir = os.path.split(dcm_file)[0]
-        tag_base = os.path.splitext(tag_file)[0]
-        tag_dcm_file = os.path.join(dcm_dir, tag_base + postfix)
+    def _build_file_path(self, dcm_file, postfix):
+        tag_dcm_file = os.path.splitext(dcm_file.filename)[0]
+        tag_dcm_file += postfix
+        tag_dcm_file = os.path.join(self.get_param('target_dir_path'), tag_dcm_file)
         return tag_dcm_file
 
     def _convert_tag_file(self, tag_file, dcm_file, postfix):
@@ -52,11 +49,12 @@ class Tag2Dcm(Node):
         p = pydicom.read_file(dcm_file)
         p.pixel_array.flat = pixels
         p.PixelData = p.pixel_array.tostring()
-        tag_dcm_file = self._build_file_path(tag_file, dcm_file, postfix)
+        os.makedirs(self.get_param('target_dir_path'), exist_ok=True)
+        tag_dcm_file = self._build_file_path(dcm_file, postfix)
         p.save_as(tag_dcm_file)
         return tag_dcm_file
 
     def execute(self):
         self.set_output(
-            'tag_dcm_file', self._convert_tag_file(
+            'output_file_path', self._convert_tag_file(
                 self.get_input('tag_file'), self.get_input('dcm_file'), '_tag.dcm'))

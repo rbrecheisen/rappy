@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: rappy
+Version: 0.1
+Summary: Python library for use with RapidMiner
+Home-page: http://github.com/rbrecheisen/rappy.git
+Author: Ralph Brecheisen
+Author-email: ralph.brecheisen@gmail.com
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN

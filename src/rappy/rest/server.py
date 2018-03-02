@@ -1,9 +1,8 @@
+import json
 from logging.config import dictConfig
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, make_response
 from flask_restful import Api
-from rappy.rest.api import IndexResource
-from rappy.rest.api import Tag2DcmResource
-from rappy.rest.api import ExtractMasksResource
+from rappy.rest.api import Tag2DcmResourceList, Tag2DcmResource
 
 # Setup logging
 dictConfig({
@@ -18,16 +17,22 @@ dictConfig({
 
 # Initialize app and api
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = '/tmp/rappy'
 blueprint = Blueprint('rappy', __name__)
 api = Api(blueprint)
 
 # Setup API
-api.add_resource(IndexResource, IndexResource.URI)
-api.add_resource(Tag2DcmResource, Tag2DcmResource.URI)
-api.add_resource(ExtractMasksResource, ExtractMasksResource.URI)
-# api.add_resource(ExtractPyRadiomicsFeaturesResource, ExtractPyRadiomicsFeaturesResource.URI)
+api.add_resource(Tag2DcmResourceList, '/tag2dcm')
+api.add_resource(Tag2DcmResource, '/tag2dcm/<string:file_name>')
 
 app.register_blueprint(blueprint)
+
+
+@api.representation('application/json')
+def output_json(data, code, headers=None):
+    response = make_response(json.dumps(data), code)
+    response.headers.extend(headers or {})
+    return response
 
 
 if __name__ == '__main__':
