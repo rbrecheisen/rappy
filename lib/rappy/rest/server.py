@@ -23,7 +23,7 @@ api = Api(blueprint)
 
 # Setup API
 api.add_resource(Tag2DcmResourceList, '/tag2dcm')
-api.add_resource(Tag2DcmResource, '/tag2dcm/<string:file_name>')
+api.add_resource(Tag2DcmResource, '/tag2dcm/<string:file_id>')
 
 app.register_blueprint(blueprint)
 
