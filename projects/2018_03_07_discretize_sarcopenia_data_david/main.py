@@ -32,6 +32,12 @@ def drop_columns(df):
     return df.drop(columns, axis=1)
 
 
+def print_types(df):
+    tt = load_types()
+    for c in df.columns:
+        print('{}: {} ({})'.format(c, df[c].dtype, tt[c]))
+
+
 def load_types():
     return {
         'Sex': 'boolean', 'Age_surg': 'numeric', 'Height': 'numeric', 'BMI_pre': 'numeric', 'Death': 'boolean',
@@ -52,10 +58,28 @@ def load_types():
         'Abscess': 'categorical', 'Fistula': 'boolean', 'SSI_totalcat': 'categorical'}
 
 
+def discretize_numeric(df):
+    t = load_types()
+    for c in df.columns:
+        if t[c] != 'numeric':
+            continue
+        m = df[c].median()
+        h = []
+        l = []
+        for v in df[c]:
+            print(v)
+    return df
+
+
 def run():
     df = load_df()
     df = drop_columns(df)
-    print(df)
+    # tt = load_types()
+    # for c in df.columns:
+    #     if tt[c] == 'numeric':
+    #         continue
+    #     print('{}: {}'.format(c, np.unique(df[c])))
+    print_types(df)
 
 
 if __name__ == '__main__':
