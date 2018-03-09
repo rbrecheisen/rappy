@@ -350,7 +350,34 @@ def handle_L3VAT_index(df):
     return df
 
 
+def impute_empty_values(series):
+    # First get numbers
+    print('Series has {} items'.format(len(series)))
+    numbers = []
+    for v in series:
+        try:
+            i = float(v)
+            numbers.append(i)
+        except ValueError:
+            pass
+    print('Converted {} items to a number'.format(len(numbers)))
+    # Calculate their mean
+    mean = np.array(numbers).mean()
+    print('Mean: {}'.format(mean))
+    new_series = series.copy()
+    for i in range(len(series)):
+        if series[i] == ' ':
+            new_series[i] = mean
+        else:
+            new_series[i] = float(series[i])
+    return new_series
+
+
 def handle_L3SAT_index(df):
+    # This attribute contains a single empty value. This caused Pandas to
+    # make all attributes strings instead of numbers. It's best to impute
+    # this value.
+    df['L3SAT_index'] = impute_empty_values(df['L3SAT_index'])
     m = df['L3SAT_index'].median()
     df['L3SAT_index_L'] = (df['L3SAT_index'] < m)
     df['L3SAT_index_H'] = (df['L3SAT_index'] >= m)
@@ -367,19 +394,37 @@ def handle_CT_Muscle(df):
 
 
 def handle_CT_IMAT(df):
-    # TODO: I was here!!!!!!
+    df['CT_IMAT'] = impute_empty_values(df['CT_IMAT'])
+    m = df['CT_IMAT'].median()
+    df['CT_IMAT_L'] = (df['CT_IMAT'] < m)
+    df['CT_IMAT_H'] = (df['CT_IMAT'] >= m)
+    df = df.drop(['CT_IMAT'], axis=1)
     return df
 
 
 def handle_CT_VAT(df):
+    # TODO: I waS here!!!!
+    m = df['CT_VAT'].median()
+    df['CT_VAT_L'] = (df['CT_VAT'] < m)
+    df['CT_VAT_H'] = (df['CT_VAT'] >= m)
+    df = df.drop(['CT_VAT'], axis=1)
     return df
 
 
 def handle_CT_SAT(df):
+    df['CT_SAT'] = impute_empty_values(df['CT_SAT'])
+    m = df['CT_SAT'].median()
+    df['CT_SAT_L'] = (df['CT_SAT'] < m)
+    df['CT_SAT_H'] = (df['CT_SAT'] >= m)
+    df = df.drop(['CT_SAT'], axis=1)
     return df
 
 
 def handle_CT_MRA(df):
+    m = df['CT_MRA'].median()
+    df['CT_MRA_L'] = (df['CT_MRA'] < m)
+    df['CT_MRA_H'] = (df['CT_MRA'] >= m)
+    df = df.drop(['CT_MRA'], axis=1)
     return df
 
 
@@ -433,6 +478,7 @@ def run():
     df = drop_columns(df)
 
     for c in df.columns:
+        print('{}: {}'.format(c, df[c].dtype))
         # Categorical features
         if c == 'Sex':
             df = handle_Sex(df)
