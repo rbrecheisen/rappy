@@ -1,4 +1,5 @@
 #!/bin/bash
+
 docker run -it --name jupyter --rm \
   -p 8888:8888 \
   -v $(pwd)/../rappy:/rappy \
