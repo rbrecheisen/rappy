@@ -1,14 +1,24 @@
+import os
 import pandas as pd
 import numpy as np
 
 
-def load_df():
+def get_directory():
     directory = ''
     directory += '/Users/Ralph/GoogleDrive/Documenten/Projecten/Chirurgie/Projecten'
     directory += '/ESPRESSO/DataDictionary/David'
     directory += '/151210 DVD Sarcopenia analysis_newcorrect.csv'
+    return directory
+
+
+def load_df():
+    directory = get_directory()
     df = pd.read_csv(directory, index_col=False)
     return df
+
+
+def save_df(df):
+    df.to_csv('sarcopenia_discretized.csv', index=False)
 
 
 def drop_columns(df):
@@ -29,12 +39,6 @@ def drop_columns(df):
         'L3Zscore_cat', 'MRAZscore_cat', 'L3_VAT_Zscore_cat', 'MRA_Zscore_nosex', 'MRA_Zscore_nosex_Cat',
         'MRA_Ztertile', 'MRA_zscore_tertile_nosex', 'MRA_zscore2SDlow']
     return df.drop(columns, axis=1)
-
-
-def print_types(df):
-    tt = load_types()
-    for c in df.columns:
-        print('{}: {} ({})'.format(c, df[c].dtype, tt[c]))
 
 
 def handle_Sex(df):
@@ -433,6 +437,7 @@ def handle_CRP(df):
 
 
 def handle_Neutro(df):
+    df = df.drop(['Neutro'], axis=1)
     return df
 
 
@@ -474,12 +479,15 @@ def handle_Albumin(df):
 
 def run():
 
+    # TODO: Change column names to reflect fact that median was used as a threshold
+    # TODO: Impute '999' in lab values
+
     df = load_df()
     df = drop_columns(df)
 
     for c in df.columns:
         print('{}: {}'.format(c, df[c].dtype))
-        # Categorical features
+        # ---- Categorical features -----------
         if c == 'Sex':
             df = handle_Sex(df)
         elif c == 'Death':
@@ -564,7 +572,7 @@ def run():
             df = handle_Fistula(df)
         elif c == 'SSI_totalcat':
             df = handle_SSI_totalcat(df)
-        # Numerical features
+        # ---- Numerical features -----------
         elif c == 'Age_surg':
             df = handle_Age_surg(df)
         elif c == 'Height':
@@ -613,6 +621,7 @@ def run():
             df = handle_Albumin(df)
         else:
             print('Skipping column {} (dtype: {})'.format(c, df[c].dtype))
+    save_df(df)
 
 
 if __name__ == '__main__':
