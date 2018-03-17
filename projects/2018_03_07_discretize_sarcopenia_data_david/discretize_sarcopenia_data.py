@@ -1,6 +1,8 @@
-import os
 import pandas as pd
 import numpy as np
+from fancyimpute import MICE
+
+MISSING_VALUES = [999, 999.0, ' ', '999', '999.0']
 
 
 def get_directory():
@@ -18,7 +20,7 @@ def load_df():
 
 
 def save_df(df):
-    df.to_csv('sarcopenia_discretized.csv', index=False)
+    df.to_csv('sarcopenia_binarized.csv', index=False)
 
 
 def drop_columns(df):
@@ -41,55 +43,89 @@ def drop_columns(df):
     return df.drop(columns, axis=1)
 
 
+def convert_to_numbers(series, missing_values):
+    new_series = series.copy()
+    for i in range(len(series)):
+        if series[i] in missing_values:
+            new_series[i] = np.nan
+        else:
+            new_series[i] = float(series[i])
+    new_series = new_series.astype('float')
+    return new_series
+
+
+def calculate_fraction_missing(series, missing_value):
+    print('Nr. items in series: {}'.format(len(series)))
+    missing = 0
+    for i in range(len(series)):
+        if series[i] == missing_value or missing_value in series[i]:
+            missing += 1
+    fraction = missing/len(series)
+    return fraction
+
+
+def binarize_with_median(df, column_names):
+    for column_name in column_names:
+        if len(np.unique(df[column_name].values)) > 2:
+            m = df[column_name].median()
+            df['{}_L'.format(column_name)] = (df[column_name] < m)
+            df['{}_H'.format(column_name)] = (df[column_name] >= m)
+            df['{}_L'.format(column_name)] = df['{}_L'.format(column_name)].map({False: 0, True: 1})
+            df['{}_H'.format(column_name)] = df['{}_H'.format(column_name)].map({False: 0, True: 1})
+            df = df.drop([column_name], axis=1)
+    return df
+
+
 def handle_Sex(df):
-    df['Sex'] = df['Sex'].map({0: False, 1: True})
+    # df['Sex'] = df['Sex'].map({0: False, 1: True})
     return df
 
 
 def handle_Death(df):
-    df['Death'] = df['Death'].map({0: False, 1: True})
+    # df['Death'] = df['Death'].map({0: False, 1: True})
     return df
 
 
 def handle_surgery(df):
     for i in range(5):
         df['surgery_{}'.format(i)] = (df['surgery'] == i)
+        df['surgery_{}'.format(i)] = df['surgery_{}'.format(i)].map({False: 0, True: 1})
     df = df.drop(['surgery'], axis=1)
     return df
 
 
 def handle_Whipple_pppd(df):
-    df['Whipple_pppd'] = df['Whipple_pppd'].map({0: False, 1: True})
+    # df['Whipple_pppd'] = df['Whipple_pppd'].map({0: False, 1: True})
     return df
 
 
 def handle_DoubleBP(df):
-    df['DoubleBP'] = df['DoubleBP'].map({0: False, 1: True})
+    # df['DoubleBP'] = df['DoubleBP'].map({0: False, 1: True})
     return df
 
 
 def handle_Total_pancreatectomy(df):
-    df['Total_pancreatectomy'] = df['Total_pancreatectomy'].map({0: False, 1: True})
+    # df['Total_pancreatectomy'] = df['Total_pancreatectomy'].map({0: False, 1: True})
     return df
 
 
 def handle_Distal_pancreatectomy(df):
-    df['Distal_pancreatectomy'] = df['Distal_pancreatectomy'].map({0: False, 1: True})
+    # df['Distal_pancreatectomy'] = df['Distal_pancreatectomy'].map({0: False, 1: True})
     return df
 
 
 def handle_Open_close(df):
-    df['Open_close'] = df['Open_close'].map({0: False, 1: True})
+    # df['Open_close'] = df['Open_close'].map({0: False, 1: True})
     return df
 
 
 def handle_surgerycure(df):
-    df['surgerycure'] = df['surgerycure'].map({0: False, 1: True})
+    # df['surgerycure'] = df['surgerycure'].map({0: False, 1: True})
     return df
 
 
 def handle_Curatief_surg(df):
-    df['Curatief_surg'] = df['Curatief_surg'].map({0: False, 1: True})
+    # df['Curatief_surg'] = df['Curatief_surg'].map({0: False, 1: True})
     return df
 
 
@@ -98,6 +134,10 @@ def handle_GPS(df):
     df['GPS_1'] = (df['GPS'] == 1)
     df['GPS_2'] = (df['GPS'] == 2)
     df['GPS_unknown'] = (df['GPS'] == 999)
+    df['GPS_0'] = df['GPS_0'].map({False: 0, True: 1})
+    df['GPS_1'] = df['GPS_1'].map({False: 0, True: 1})
+    df['GPS_2'] = df['GPS_2'].map({False: 0, True: 1})
+    df['GPS_unknown'] = df['GPS_unknown'].map({False: 0, True: 1})
     df = df.drop(['GPS'], axis=1)
     return df
 
@@ -108,6 +148,11 @@ def handle_PancFistula(df):
     df['PancFistula_2'] = (df['PancFistula'] == '2')
     df['PancFistula_3'] = (df['PancFistula'] == '3')
     df['PancFistula_unknown'] = (df['PancFistula'] == ' ')
+    df['PancFistula_0'] = df['PancFistula_0'].map({False: 0, True: 1})
+    df['PancFistula_1'] = df['PancFistula_1'].map({False: 0, True: 1})
+    df['PancFistula_2'] = df['PancFistula_2'].map({False: 0, True: 1})
+    df['PancFistula_3'] = df['PancFistula_3'].map({False: 0, True: 1})
+    df['PancFistula_unknown'] = df['PancFistula_unknown'].map({False: 0, True: 1})
     df = df.drop(['PancFistula'], axis=1)
     return df
 
@@ -118,27 +163,27 @@ def handle_PancFist_Y_N(df):
 
 
 def handle_Infection_wound_total(df):
-    df['Infection_wound_total'] = df['Infection_wound_total'].map({0: False, 1: True})
+    # df['Infection_wound_total'] = df['Infection_wound_total'].map({0: False, 1: True})
     return df
 
 
 def handle_Infection_deep_POWI(df):
-    df['Infection_deep_POWI'] = df['Infection_deep_POWI'].map({0: False, 1: True})
+    # df['Infection_deep_POWI'] = df['Infection_deep_POWI'].map({0: False, 1: True})
     return df
 
 
 def handle_Infection_POWI(df):
-    df['Infection_POWI'] = df['Infection_POWI'].map({0: False, 1: True})
+    # df['Infection_POWI'] = df['Infection_POWI'].map({0: False, 1: True})
     return df
 
 
 def handle_Infection_deep_bile(df):
-    df['Infection_deep_bile'] = df['Infection_deep_bile'].map({0: False, 1: True})
+    # df['Infection_deep_bile'] = df['Infection_deep_bile'].map({0: False, 1: True})
     return df
 
 
 def handle_Infection_deep_fistula(df):
-    df['Infection_deep_fistula'] = df['Infection_deep_fistula'].map({0: False, 1: True})
+    # df['Infection_deep_fistula'] = df['Infection_deep_fistula'].map({0: False, 1: True})
     return df
 
 
@@ -148,6 +193,11 @@ def handle_DGE(df):
     df['DGE_2'] = (df['DGE'] == 2)
     df['DGE_3'] = (df['DGE'] == 3)
     df['DGE_unknown'] = (df['DGE'] == 999)
+    df['DGE_0'] = df['DGE_0'].map({False: 0, True: 1})
+    df['DGE_1'] = df['DGE_1'].map({False: 0, True: 1})
+    df['DGE_2'] = df['DGE_2'].map({False: 0, True: 1})
+    df['DGE_3'] = df['DGE_3'].map({False: 0, True: 1})
+    df['DGE_unknown'] = df['DGE_unknown'].map({False: 0, True: 1})
     df = df.drop(['DGE'], axis=1)
     return df
 
@@ -165,45 +215,56 @@ def handle_Pathology(df):
     df['Pathology_5'] = (df['Pathology'] == 5)
     df['Pathology_6'] = (df['Pathology'] == 6)
     df['Pathology_7'] = (df['Pathology'] == 7)
+    df['Pathology_0'] = df['Pathology_0'].map({False: 0, True: 1})
+    df['Pathology_1'] = df['Pathology_1'].map({False: 0, True: 1})
+    df['Pathology_2'] = df['Pathology_2'].map({False: 0, True: 1})
+    df['Pathology_3'] = df['Pathology_3'].map({False: 0, True: 1})
+    df['Pathology_5'] = df['Pathology_5'].map({False: 0, True: 1})
+    df['Pathology_6'] = df['Pathology_6'].map({False: 0, True: 1})
+    df['Pathology_7'] = df['Pathology_7'].map({False: 0, True: 1})
     df = df.drop(['Pathology'], axis=1)
     return df
 
 
 def handle_PatPanc(df):
-    df['PatPanc'] = df['PatPanc'].map({0: False, 1: True})
+    # df['PatPanc'] = df['PatPanc'].map({0: False, 1: True})
     return df
 
 
 def handle_PatAmp(df):
-    df['PatAmp'] = df['PatAmp'].map({0: False, 1: True})
+    # df['PatAmp'] = df['PatAmp'].map({0: False, 1: True})
     return df
 
 
 def handle_PatChol(df):
-    df['PatChol'] = df['PatChol'].map({0: False, 1: True})
+    # df['PatChol'] = df['PatChol'].map({0: False, 1: True})
     return df
 
 
 def handle_PatDuo(df):
-    df['PatDuo'] = df['PatDuo'].map({0: False, 1: True})
+    # df['PatDuo'] = df['PatDuo'].map({0: False, 1: True})
     return df
 
 
 def handle_PatOth(df):
-    df['PatOth'] = df['PatOth'].map({0: False, 1: True})
+    # df['PatOth'] = df['PatOth'].map({0: False, 1: True})
     return df
 
 
 def handle_PatNone(df):
-    df['PatNone'] = df['PatNone'].map({0: False, 1: True})
+    # df['PatNone'] = df['PatNone'].map({0: False, 1: True})
     return df
 
 
 def handle_diabetes(df):
     df['diabetes_0'] = (df['diabetes'] == '0')
-    df['diabetes_1'] = (df['diabetes'] == '0')
-    df['diabetes_2'] = (df['diabetes'] == '0')
+    df['diabetes_1'] = (df['diabetes'] == '1')
+    df['diabetes_2'] = (df['diabetes'] == '2')
     df['diabetes_unknown'] = (df['diabetes'] == ' ')
+    df['diabetes_0'] = df['diabetes_0'].map({False: 0, True: 1})
+    df['diabetes_1'] = df['diabetes_1'].map({False: 0, True: 1})
+    df['diabetes_2'] = df['diabetes_2'].map({False: 0, True: 1})
+    df['diabetes_unknown'] = df['diabetes_unknown'].map({False: 0, True: 1})
     df = df.drop(['diabetes'], axis=1)
     return df
 
@@ -217,6 +278,9 @@ def handle_comob_car(df):
     df['comob_car_0'] = (df['comob_car'] == '0')
     df['comob_car_1'] = (df['comob_car'] == '1')
     df['comob_car_unknown'] = (df['comob_car'] == ' ')
+    df['comob_car_0'] = df['comob_car_0'].map({False: 0, True: 1})
+    df['comob_car_1'] = df['comob_car_1'].map({False: 0, True: 1})
+    df['comob_car_unknown'] = df['comob_car_unknown'].map({False: 0, True: 1})
     df = df.drop(['comob_car'], axis=1)
     return df
 
@@ -225,6 +289,9 @@ def handle_comob_pul(df):
     df['comob_pul_0'] = (df['comob_pul'] == '0')
     df['comob_pul_1'] = (df['comob_pul'] == '1')
     df['comob_pul_unknown'] = (df['comob_pul'] == ' ')
+    df['comob_pul_0'] = df['comob_pul_0'].map({False: 0, True: 1})
+    df['comob_pul_1'] = df['comob_pul_1'].map({False: 0, True: 1})
+    df['comob_pul_unknown'] = df['comob_pul_unknown'].map({False: 0, True: 1})
     df = df.drop(['comob_pul'], axis=1)
     return df
 
@@ -233,6 +300,9 @@ def handle_comob_ren(df):
     df['comob_ren_0'] = (df['comob_ren'] == '0')
     df['comob_ren_1'] = (df['comob_ren'] == '1')
     df['comob_ren_unknown'] = (df['comob_ren'] == ' ')
+    df['comob_ren_0'] = df['comob_ren_0'].map({False: 0, True: 1})
+    df['comob_ren_1'] = df['comob_ren_1'].map({False: 0, True: 1})
+    df['comob_ren_unknown'] = df['comob_ren_unknown'].map({False: 0, True: 1})
     df = df.drop(['comob_ren'], axis=1)
     return df
 
@@ -241,6 +311,9 @@ def handle_CEP(df):
     df['CEP_0'] = (df['CEP'] == '0')
     df['CEP_1'] = (df['CEP'] == '1')
     df['CEP_unknown'] = (df['CEP'] == ' ')
+    df['CEP_0'] = df['CEP_0'].map({False: 0, True: 1})
+    df['CEP_1'] = df['CEP_1'].map({False: 0, True: 1})
+    df['CEP_unknown'] = df['CEP_unknown'].map({False: 0, True: 1})
     df = df.drop(['CEP'], axis=1)
     return df
 
@@ -249,17 +322,20 @@ def handle_Sepsis(df):
     df['Sepsis_0'] = (df['Sepsis'] == 0)
     df['Sepsis_1'] = (df['Sepsis'] == 1)
     df['Sepsis_unknown'] = (df['Sepsis'] == 999)
+    df['Sepsis_0'] = df['Sepsis_0'].map({False: 0, True: 1})
+    df['Sepsis_1'] = df['Sepsis_1'].map({False: 0, True: 1})
+    df['Sepsis_unknown'] = df['Sepsis_unknown'].map({False: 0, True: 1})
     df = df.drop(['Sepsis'], axis=1)
     return df
 
 
 def handle_Gastrojejuno_leakage(df):
-    df['Gastrojejuno_leakage'] = df['Gastrojejuno_leakage'].map({0: False, 1: True})
+    # df['Gastrojejuno_leakage'] = df['Gastrojejuno_leakage'].map({0: False, 1: True})
     return df
 
 
 def handle_Hemorrhage(df):
-    df['Hemorrhage'] = df['Hemorrhage'].map({0: False, 1: True})
+    # df['Hemorrhage'] = df['Hemorrhage'].map({0: False, 1: True})
     return df
 
 
@@ -267,6 +343,9 @@ def handle_Bile_leak(df):
     df['Bile_leak_0'] = (df['Bile_leak'] == 0)
     df['Bile_leak_1'] = (df['Bile_leak'] == 1)
     df['Bile_leak_unknown'] = (df['Bile_leak'] == 999)
+    df['Bile_leak_0'] = df['Bile_leak_0'].map({False: 0, True: 1})
+    df['Bile_leak_1'] = df['Bile_leak_1'].map({False: 0, True: 1})
+    df['Bile_leak_unknown'] = df['Bile_leak_unknown'].map({False: 0, True: 1})
     df = df.drop(['Bile_leak'], axis=1)
     return df
 
@@ -275,12 +354,15 @@ def handle_DelGasEmpt(df):
     df['DelGasEmpt_0'] = (df['DelGasEmpt'] == 0)
     df['DelGasEmpt_1'] = (df['DelGasEmpt'] == 1)
     df['DelGasEmpt_unknown'] = (df['DelGasEmpt'] == 999)
+    df['DelGasEmpt_0'] = df['DelGasEmpt_0'].map({False: 0, True: 1})
+    df['DelGasEmpt_1'] = df['DelGasEmpt_1'].map({False: 0, True: 1})
+    df['DelGasEmpt_unknown'] = df['DelGasEmpt_unknown'].map({False: 0, True: 1})
     df = df.drop(['DelGasEmpt'], axis=1)
     return df
 
 
 def handle_Operative_mort(df):
-    df['Operative_mort'] = df['Operative_mort'].map({0: False, 1: True})
+    # df['Operative_mort'] = df['Operative_mort'].map({0: False, 1: True})
     return df
 
 
@@ -288,12 +370,15 @@ def handle_Abscess(df):
     df['Abscess_0'] = (df['Abscess'] == 0)
     df['Abscess_1'] = (df['Abscess'] == 1)
     df['Abscess_unknown'] = (df['Abscess'] == 999)
+    df['Abscess_0'] = df['Abscess_0'].map({False: 0, True: 1})
+    df['Abscess_1'] = df['Abscess_1'].map({False: 0, True: 1})
+    df['Abscess_unknown'] = df['Abscess_unknown'].map({False: 0, True: 1})
     df = df.drop(['Abscess'], axis=1)
     return df
 
 
 def handle_Fistula(df):
-    df['Fistula'] = df['Fistula'].map({0: False, 1: True})
+    # df['Fistula'] = df['Fistula'].map({0: False, 1: True})
     return df
 
 
@@ -302,137 +387,70 @@ def handle_SSI_totalcat(df):
     df['SSI_totalcat_2'] = (df['SSI_totalcat'] == '2')
     df['SSI_totalcat_3'] = (df['SSI_totalcat'] == '3')
     df['SSI_totalcat_unknown'] = (df['SSI_totalcat'] == ' ')
+    df['SSI_totalcat_1'] = df['SSI_totalcat_1'].map({False: 0, True: 1})
+    df['SSI_totalcat_2'] = df['SSI_totalcat_2'].map({False: 0, True: 1})
+    df['SSI_totalcat_3'] = df['SSI_totalcat_3'].map({False: 0, True: 1})
+    df['SSI_totalcat_unknown'] = df['SSI_totalcat_unknown'].map({False: 0, True: 1})
     df = df.drop(['SSI_totalcat'], axis=1)
     return df
 
 
 def handle_Age_surg(df):
-    m = df['Age_surg'].median()
-    df['Age_surg_L'] = (df['Age_surg'] < m)
-    df['Age_surg_H'] = (df['Age_surg'] >= m)
-    df = df.drop(['Age_surg'], axis=1)
     return df
 
 
 def handle_Height(df):
-    m = df['Height'].median()
-    df['Height_L'] = (df['Height'] < m)
-    df['Height_H'] = (df['Height'] >= m)
-    df = df.drop(['Height'], axis=1)
     return df
 
 
 def handle_BMI_pre(df):
-    m = df['BMI_pre'].median()
-    df['BMI_pre_L'] = (df['BMI_pre'] < m)
-    df['BMI_pre_H'] = (df['BMI_pre'] >= m)
-    df = df.drop(['BMI_pre'], axis=1)
     return df
 
 
 def handle_Survival_month(df):
-    m = df['Survival_month'].median()
-    df['Survival_month_L'] = (df['Survival_month'] < m)
-    df['Survival_month_H'] = (df['Survival_month'] >= m)
-    df = df.drop(['Survival_month'], axis=1)
     return df
 
 
 def handle_L3_muscleindex(df):
-    m = df['L3_muscleindex'].median()
-    df['L3_muscleindex_L'] = (df['L3_muscleindex'] < m)
-    df['L3_muscleindex_H'] = (df['L3_muscleindex'] >= m)
-    df = df.drop(['L3_muscleindex'], axis=1)
     return df
 
 
 def handle_L3VAT_index(df):
-    m = df['L3VAT_index'].median()
-    df['L3VAT_index_L'] = (df['L3VAT_index'] < m)
-    df['L3VAT_index_H'] = (df['L3VAT_index'] >= m)
-    df = df.drop(['L3VAT_index'], axis=1)
     return df
-
-
-def impute_empty_values(series):
-    # First get numbers
-    print('Series has {} items'.format(len(series)))
-    numbers = []
-    for v in series:
-        try:
-            i = float(v)
-            numbers.append(i)
-        except ValueError:
-            pass
-    print('Converted {} items to a number'.format(len(numbers)))
-    # Calculate their mean
-    mean = np.array(numbers).mean()
-    print('Mean: {}'.format(mean))
-    new_series = series.copy()
-    for i in range(len(series)):
-        if series[i] == ' ':
-            new_series[i] = mean
-        else:
-            new_series[i] = float(series[i])
-    return new_series
 
 
 def handle_L3SAT_index(df):
     # This attribute contains a single empty value. This caused Pandas to
     # make all attributes strings instead of numbers. It's best to impute
     # this value.
-    df['L3SAT_index'] = impute_empty_values(df['L3SAT_index'])
-    m = df['L3SAT_index'].median()
-    df['L3SAT_index_L'] = (df['L3SAT_index'] < m)
-    df['L3SAT_index_H'] = (df['L3SAT_index'] >= m)
-    df = df.drop(['L3SAT_index'], axis=1)
+    df['L3SAT_index'] = convert_to_numbers(df['L3SAT_index'], MISSING_VALUES)
     return df
 
 
 def handle_CT_Muscle(df):
-    m = df['CT_Muscle'].median()
-    df['CT_Muscle_L'] = (df['CT_Muscle'] < m)
-    df['CT_Muscle_H'] = (df['CT_Muscle'] >= m)
-    df = df.drop(['CT_Muscle'], axis=1)
     return df
 
 
 def handle_CT_IMAT(df):
-    df['CT_IMAT'] = impute_empty_values(df['CT_IMAT'])
-    m = df['CT_IMAT'].median()
-    df['CT_IMAT_L'] = (df['CT_IMAT'] < m)
-    df['CT_IMAT_H'] = (df['CT_IMAT'] >= m)
-    df = df.drop(['CT_IMAT'], axis=1)
+    df['CT_IMAT'] = convert_to_numbers(df['CT_IMAT'], MISSING_VALUES)
     return df
 
 
 def handle_CT_VAT(df):
-    # TODO: I waS here!!!!
-    m = df['CT_VAT'].median()
-    df['CT_VAT_L'] = (df['CT_VAT'] < m)
-    df['CT_VAT_H'] = (df['CT_VAT'] >= m)
-    df = df.drop(['CT_VAT'], axis=1)
     return df
 
 
 def handle_CT_SAT(df):
-    df['CT_SAT'] = impute_empty_values(df['CT_SAT'])
-    m = df['CT_SAT'].median()
-    df['CT_SAT_L'] = (df['CT_SAT'] < m)
-    df['CT_SAT_H'] = (df['CT_SAT'] >= m)
-    df = df.drop(['CT_SAT'], axis=1)
+    df['CT_SAT'] = convert_to_numbers(df['CT_SAT'], MISSING_VALUES)
     return df
 
 
 def handle_CT_MRA(df):
-    m = df['CT_MRA'].median()
-    df['CT_MRA_L'] = (df['CT_MRA'] < m)
-    df['CT_MRA_H'] = (df['CT_MRA'] >= m)
-    df = df.drop(['CT_MRA'], axis=1)
     return df
 
 
 def handle_CRP(df):
+    df['CRP'] = convert_to_numbers(df['CRP'], MISSING_VALUES)
     return df
 
 
@@ -442,51 +460,52 @@ def handle_Neutro(df):
 
 
 def handle_Leuko(df):
+    df['Leuko'] = convert_to_numbers(df['Leuko'], MISSING_VALUES)
     return df
 
 
 def handle_Hb(df):
+    df['Hb'] = convert_to_numbers(df['Hb'], MISSING_VALUES)
     return df
 
 
 def handle_Bili(df):
+    df['Bili'] = convert_to_numbers(df['Bili'], MISSING_VALUES)
     return df
 
 
 def handle_ASAT(df):
+    df['ASAT'] = convert_to_numbers(df['ASAT'], MISSING_VALUES)
     return df
 
 
 def handle_ALAT(df):
+    df['ALAT'] = convert_to_numbers(df['ALAT'], MISSING_VALUES)
     return df
 
 
 def handle_LDH(df):
+    df['LDH'] = convert_to_numbers(df['LDH'], MISSING_VALUES)
     return df
 
 
 def handle_gGT(df):
+    df['gGT'] = convert_to_numbers(df['gGT'], MISSING_VALUES)
     return df
 
 
 def handle_AF(df):
+    df['AF'] = convert_to_numbers(df['AF'], MISSING_VALUES)
     return df
 
 
 def handle_Albumin(df):
+    df['Albumin'] = convert_to_numbers(df['Albumin'], MISSING_VALUES)
     return df
 
 
-def run():
-
-    # TODO: Change column names to reflect fact that median was used as a threshold
-    # TODO: Impute '999' in lab values
-
-    df = load_df()
-    df = drop_columns(df)
-
+def handle_columns(df):
     for c in df.columns:
-        print('{}: {}'.format(c, df[c].dtype))
         # ---- Categorical features -----------
         if c == 'Sex':
             df = handle_Sex(df)
@@ -621,6 +640,20 @@ def run():
             df = handle_Albumin(df)
         else:
             print('Skipping column {} (dtype: {})'.format(c, df[c].dtype))
+    return df
+
+
+def run():
+
+    df = load_df()
+    df = drop_columns(df)
+    df = handle_columns(df)
+
+    imputed = MICE().complete(df)
+    df = pd.DataFrame(imputed, index=df.index, columns=df.columns)
+
+    df = binarize_with_median(df, df.columns)
+
     save_df(df)
 
 
