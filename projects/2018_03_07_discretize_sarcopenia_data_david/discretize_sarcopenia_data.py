@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from fancyimpute import MICE
@@ -9,18 +10,26 @@ def get_directory():
     directory = ''
     directory += '/Users/Ralph/GoogleDrive/Documenten/Projecten/Chirurgie/Projecten'
     directory += '/ESPRESSO/DataDictionary/David'
-    directory += '/151210 DVD Sarcopenia analysis_newcorrect.csv'
     return directory
 
 
+def get_file():
+    return '151210 DVD Sarcopenia analysis_newcorrect.csv'
+
+
 def load_df():
-    directory = get_directory()
-    df = pd.read_csv(directory, index_col=False)
+    file_path = os.path.join(get_directory(), get_file())
+    df = pd.read_csv(file_path, index_col=False)
     return df
 
 
 def save_df(df):
-    df.to_csv('sarcopenia_binarized.csv', index=False)
+    file_name = 'sarcopenia_binarized.csv'
+    # Save locally
+    df.to_csv(file_name, index=False)
+    # Save to Google Drive
+    file_path = os.path.join(get_directory(), file_name)
+    df.to_csv(file_path, index=False)
 
 
 def drop_columns(df):
