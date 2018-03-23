@@ -74,7 +74,7 @@ def calculate_fraction_missing(series, missing_value):
     return fraction
 
 
-def binarize_with_median(df, column_names):
+def discretize_variables(df, column_names):
     for column_name in column_names:
         if len(np.unique(df[column_name].values)) > 2:
             m = df[column_name].median()
@@ -662,7 +662,7 @@ def run():
     imputed = MICE().complete(df)
     df = pd.DataFrame(imputed, index=df.index, columns=df.columns)
 
-    df = binarize_with_median(df, df.columns)
+    df = discretize_variables(df, df.columns)
 
     save_df(df)
 
