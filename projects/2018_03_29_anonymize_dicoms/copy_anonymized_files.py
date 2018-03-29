@@ -11,8 +11,9 @@ def get_file_path(src_dir):
 
 def run():
 
-    name = 'David'
+    name = 'Gregory'
     src_dir = '/Users/Ralph/Data/CTP/roots/FileStorageService'
+    src_dir_tag = '/Users/Ralph/Data/{}/Pancreas/Imaging/OriginalRenamed'.format(name)
     dst_dir = '/Users/Ralph/Data/{}/Pancreas/Imaging/OriginalRenamedAnonymized'.format(name)
     random_ids = []
 
@@ -25,8 +26,9 @@ def run():
             random_ids.append(line.strip().split(',')[1])
     os.makedirs(dst_dir, exist_ok=True)
     for random_id in random_ids:
-        file_path = get_file_path(os.path.join(src_dir, random_id + '_dcm'))
-        shutil.copyfile(file_path, os.path.join(dst_dir, random_id + '.dcm'))
+        # file_path = get_file_path(os.path.join(src_dir, random_id + '_dcm'))
+        # shutil.copyfile(file_path, os.path.join(dst_dir, random_id + '.dcm'))
+        shutil.copyfile(os.path.join(src_dir_tag, random_id + '.tag'), os.path.join(dst_dir, random_id + '.tag'))
 
 
 if __name__ == '__main__':
