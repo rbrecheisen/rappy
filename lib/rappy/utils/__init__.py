@@ -1,5 +1,6 @@
 import os
 from datetime import datetime as d
+from rappy.utils.random_ids import RandomIds
 
 
 class Log(object):
@@ -23,3 +24,5 @@ class Log(object):
 
     def close(self):
         self.log.close()
+
+

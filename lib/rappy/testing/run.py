@@ -1,9 +1,10 @@
 import os
 import requests
 from rappy.radiomics import Tag2Dcm
+from rappy.utils import RandomIds
 
-TAG_FILE = '/Users/ralph/GoogleDrive/Dbx/Gregory/HP003.tag'
-DCM_FILE = '/Users/ralph/GoogleDrive/Dbx/Gregory/HP003.dcm'
+TAG_FILE = '/Users/ralph/GoogleDrive/Dbx/Gregory/ColorectalMets/Imaging/OriginalFixed/HP003.tag'
+DCM_FILE = '/Users/ralph/GoogleDrive/Dbx/Gregory/ColorectalMets/Imaging/OriginalFixed/HP003.dcm'
 
 
 def test_tag2dcm_rest():
@@ -29,7 +30,7 @@ def test_tag2dcm():
     n = Tag2Dcm()
     n.set_input('tag_file', TAG_FILE)
     n.set_input('dcm_file', DCM_FILE)
-    n.set_param('output_dir', '/Users/ralph/GoogleDrive/Dbx/Test')
+    n.set_param('output_dir', '/Users/ralph/Data/Test')
     n.set_param('overwrite', True)
     print(n.get_output('output_file'))
 
@@ -39,11 +40,20 @@ def test_dcm2masks():
     pass
 
 
+def test_random_ids():
+    n = RandomIds()
+    n.set_param('mode', 'create')
+    n.set_param('nr', 1000)
+    random_ids = n.get_output('output')
+    assert len(random_ids) == 1000
+
+
 if __name__ == '__main__':
 
     tests = [
-        test_tag2dcm,
-        test_dcm2masks,
+        # test_tag2dcm,
+        # test_dcm2masks,
+        test_random_ids,
     ]
 
     for t in tests:

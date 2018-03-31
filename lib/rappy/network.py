@@ -114,4 +114,4 @@ class Node(object):
     # Execute
 
     def execute(self):
-        raise NotImplementedError()
+        raise NotImplementedError('execute() is not implemented')
