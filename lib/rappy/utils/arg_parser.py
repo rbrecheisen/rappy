@@ -25,6 +25,8 @@ class ArgParser(object):
                 name = name[1:]
             if name not in self.args.keys():
                 raise RuntimeError('Argument {} not in {}'.format(name, self.args.keys()))
+            if value.startswith('{') and value.endswith('}'):
+                value = json.loads(value)
             self.args[name] = value
         return self.args
 
