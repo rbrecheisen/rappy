@@ -25,8 +25,6 @@ def run(args):
                 out_file = crf.get_output('out_file')
                 print(out_file)
 
-    # Collect per-patient features in tissue-specific CSVs
-
 
 if __name__ == '__main__':
 
