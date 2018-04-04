@@ -1,6 +1,6 @@
 import os
 import shutil
-from rappy.radiomics import Dcm2Masks
+from rappy.rad import Dcm2Masks
 from rappy.utils import ArgParser
 
 

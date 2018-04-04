@@ -46,7 +46,6 @@ class Dcm2Masks(Node):
         p = pydicom.read_file(open(file_path, 'rb'))
         pixels = p.pixel_array.flat
         labels = np.unique(pixels).tolist()
-        masks = {}
         out_files = []
         print('Dcm2Masks._extract_binary_masks() creating masks')
         for label in labels:

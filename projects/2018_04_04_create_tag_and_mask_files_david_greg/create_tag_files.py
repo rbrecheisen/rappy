@@ -1,6 +1,6 @@
 import shutil
 import os
-from rappy.radiomics import Tag2Dcm
+from rappy.rad import Tag2Dcm
 from rappy.utils import ArgParser
 
 
