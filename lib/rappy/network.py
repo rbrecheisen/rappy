@@ -11,9 +11,6 @@ class Node(object):
         self.params_defaults = {}
         self.params_desc = {}
         self.params_types = {}
-        # Add default input and output. Probably always needed by any node
-        self.add_input('input_file', data_type='string')
-        self.add_output('output_file', data_type='string')
 
     def get_info(self):
         info = ''

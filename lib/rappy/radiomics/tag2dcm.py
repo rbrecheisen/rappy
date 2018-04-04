@@ -18,8 +18,8 @@ class Tag2Dcm(Node):
 
         self.add_input('tag_file', data_type='string')
         self.add_input('dcm_file', data_type='string')
-        self.add_param('output_dir', data_type='string')
-        self.add_output('output_file', data_type='string')
+        self.add_param('out_dir', data_type='string')
+        self.add_output('out_file', data_type='string')
         self.add_param('overwrite', data_type='boolean', default=False)
 
     @staticmethod
@@ -49,7 +49,7 @@ class Tag2Dcm(Node):
         output_file = os.path.split(tag_file)[1]
         output_file = os.path.splitext(output_file)[0]
         output_file = output_file + '_tag.dcm'
-        output_file = os.path.join(self.get_param('output_dir'), output_file)
+        output_file = os.path.join(self.get_param('out_dir'), output_file)
         print('Tag2Dcm._build_file_path() output_file = {}'.format(output_file))
 
         return output_file
@@ -69,10 +69,10 @@ class Tag2Dcm(Node):
 
         if self.get_param('overwrite'):
             print('Tag2Dcm._convert_tag_file() removing output_dir')
-            shutil.rmtree(self.get_param('output_dir'), ignore_errors=True)
+            shutil.rmtree(self.get_param('out_dir'), ignore_errors=True)
 
         print('Tag2Dcm._convert_tag_file() creating output_dir')
-        os.makedirs(self.get_param('output_dir'), exist_ok=True)
+        os.makedirs(self.get_param('out_dir'), exist_ok=True)
 
         print('Tag2Dcm._convert_tag_file() building output_file path')
         output_file = self._build_output_file_path(tag_file)
@@ -87,5 +87,5 @@ class Tag2Dcm(Node):
 
         print('Tag2Dcm.execute()')
         self.set_output(
-            'output_file', self._convert_tag_file(
+            'out_file', self._convert_tag_file(
                 self.get_input('tag_file'), self.get_input('dcm_file')))

@@ -1,6 +1,7 @@
 import os
 from datetime import datetime as d
 from rappy.utils.random_ids import RandomIds
+from rappy.utils.arg_parser import ArgParser
 
 
 class Log(object):
