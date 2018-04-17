@@ -1,5 +1,7 @@
 numpy
 pandas
+xlrd
+openpyxl
 scipy
 sklearn
 flask
