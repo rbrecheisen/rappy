@@ -11,8 +11,8 @@ def run(args):
 
     p = pydicom.read_file(args['in_file'])
     pixels = p.pixel_array
-    pixels_rescaled = rescale(pixels, 1.0/4.0)
-    print(pixels_rescaled.shape)
+    # pixels_rescaled = rescale(pixels, 1.0/4.0)
+    # print(pixels_rescaled.shape)
 
 
 if __name__ == '__main__':
