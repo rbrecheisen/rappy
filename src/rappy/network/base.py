@@ -14,9 +14,9 @@ class Node(object):
         self.params_desc = {}
         self.params_types = {}
         self.types_allowed = [
-            'int', 'float', 'string', 'bool', 'list', 'dict', 'directory', 'file', 'dataframe', 'series', 'array']
+            'int', 'float', 'string', 'bool', 'list', 'dict', 'dir', 'file', 'dataframe', 'series', 'array']
         self.param_types_allowed = [
-            'int', 'float', 'string', 'bool', 'list', 'dict', 'directory', 'file']
+            'int', 'float', 'string', 'bool', 'list', 'dict', 'dir', 'file']
 
     def add_input(self, name, data_type, desc=None):
         if data_type not in self.types_allowed:
